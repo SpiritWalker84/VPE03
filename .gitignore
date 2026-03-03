@@ -1,0 +1,7 @@
+auth/
+certs/
+registry-data/
+.env
+*.log
+__pycache__/
+

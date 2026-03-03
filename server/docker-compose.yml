@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  registry:
+    image: registry:2
+    container_name: local-registry
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - registry-data:/var/lib/registry
+      - ./certs:/certs:ro
+      - ./auth:/auth:ro
+      - ./registry-config.yml:/etc/docker/registry/config.yml:ro
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    # Доступ к Docker daemon, чтобы уметь перезапускать контейнеры
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/dns/.docker/config.json:/config.json:ro
+    # Обновлять только контейнеры с нужной меткой и чистить старые образы
+    command: >
+      --interval 60
+      --cleanup
+      --label-enable
+    environment:
+      # Включаем вывод логов в stdout, удобно для отладки через docker logs
+      WATCHTOWER_LOG_LEVEL: info
+      # Совместимая версия Docker API с текущим демоном
+      DOCKER_API_VERSION: "1.44"
+
+volumes:
+  registry-data:
+    name: registry-data
+
